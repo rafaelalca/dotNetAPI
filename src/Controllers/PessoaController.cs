@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using src.Models;
+using src.Persistencia;
 
 namespace src.Controllers;
 
@@ -7,26 +9,30 @@ namespace src.Controllers;
     [Route("[controller]")]
     public class PessoaController : ControllerBase
     {
+    private DatabaseContexto _contexto{ get; set; }
        
+    public PessoaController(DatabaseContexto contexto){
+      this._contexto = contexto;
+    }  
        [HttpGet]
-        public Pessoa Get(){
-            Pessoa pessoa = new Pessoa("Felipe", 28, "12345678");
-            Contrato novoContrato = new Contrato("abcd12234", 50.46);
+        public  List<Pessoa> Get(){
+            
+          return _contexto.Pessoas.Include(p => p.contratos).ToList();
            
-            pessoa.contratos.Add(novoContrato);
-           
-            return pessoa;
         }   
 
         [HttpPost]
         public Pessoa Post([FromBody]Pessoa pessoa){
+          _contexto.Pessoas.Add(pessoa);
+          _contexto.SaveChanges();
+          
           return pessoa;
         }
 
         [HttpPut("{id}")]
         public string Update([FromRoute]int id, [FromBody] Pessoa pessoa){
-          Console.WriteLine(id);
-          Console.WriteLine(pessoa);
+          _contexto.Pessoas.Update(pessoa);
+          _contexto.SaveChanges();
           return "Dados do id" + id + " Atualizados.";
         }
 
